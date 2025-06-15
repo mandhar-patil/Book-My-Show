@@ -16,6 +16,6 @@ spec:
     spec:
       containers:
       - name: bms-container
-        image: mandhar12/bms:latest  
+        image: mandhar12/bmss
         ports:
         - containerPort: 3000  
