@@ -1,39 +1,24 @@
-# === Stage 1: Build Stage ===
-FROM node:18 AS builder
+FROM node:18-slim
 
-# Set working directory
 WORKDIR /app
 
-# Copy dependency files first (for better caching)
+# Copy package files and install dependencies
 COPY package.json package-lock.json ./
+RUN npm install --legacy-peer-deps
 
-# Force install compatible PostCSS version and dependencies
-RUN npm install postcss@8.4.21 postcss-safe-parser@6.0.0 --legacy-peer-deps
-RUN npm install
-
-# Copy full source code
+# Copy all files
 COPY . .
 
-# Build your project (uncomment if you use a build step)
-# RUN npm run build
-
-
-# === Stage 2: Production Stage ===
-FROM node:18-slim AS production
-
-# Set working directory
-WORKDIR /app
-
-# Copy only what's needed from the builder
-COPY --from=builder /app ./
-
-# Set environment variables
+# Set the OpenSSL legacy provider to fix Webpack build issue
 ENV NODE_OPTIONS=--openssl-legacy-provider
-ENV PORT=3000
 
-# Expose the port
+# Build the app
+RUN npm run build
+
+# Install serve to serve the build directory
+RUN npm install -g serve
+
 EXPOSE 3000
 
 # Start the app
-CMD ["npm", "start"]
-
+CMD ["serve", "-s", "build", "-l", "3000"]
